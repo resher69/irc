@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <cstring>
 
-namespace ft 
+namespace ft
 {
 
 Server::Server(int port, const std::string& password)
@@ -84,13 +84,13 @@ void Server::update()
 				++it	)
 		{
 			// TODO: POLLUP
-			this->_pollfds.push_back({.fd = (*it)->socket(), .events = POLLIN | POLLHUP, .revents = 0});
+			this->_pollfds.push_back((pollfd){.fd = (*it)->socket(), .events = POLLIN | POLLHUP, .revents = 0});
 		}
 	}
 
 	if (::poll(&this->_pollfds[0], this->_pollfds.size(), 30) < 0)
 	{
-		throw std::runtime_error(strerror(errno)); 
+		throw std::runtime_error(strerror(errno));
 	}
 
 	std::vector<Client *>::const_iterator cit = this->_clients.begin();

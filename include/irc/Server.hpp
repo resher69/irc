@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-using pollfd = struct pollfd;
+typedef struct pollfd pollfd;
 
 namespace ft
 {
