@@ -7,7 +7,7 @@ int main()
 	ft::Server *server;
 
 	try {
-		server = new ft::Server(6667, "");
+		server = new ft::Server(6667, "abc");
 	} catch (const std::exception& e) {
 		std::cerr << FATAL << e.what() << std::endl;
 		return EXIT_FAILURE;
