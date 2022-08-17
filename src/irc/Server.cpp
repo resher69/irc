@@ -3,7 +3,11 @@
 #include "irc/Server.hpp"
 #include "irc/Client.hpp"
 #include "irc/Command.hpp"
+#include "irc/Replies.hpp"
+#include "irc/Channel.hpp"
+#include "irc/Errors.hpp"
 #include "Colors.hpp"
+#include "utils.hpp"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -12,13 +16,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <cstring>
-#include <sstream>
 
 namespace ft
 {
 
 Server::Server(int port, const std::string& password)
-	:	_password(password), _clients(), _commands(), _should_update_pollfds(false)
+	:	_password(password), _clients(), _channels(), _commands(), _should_update_pollfds(false)
 {
 	this->_socket = ::socket(AF_INET, SOCK_STREAM, 0);
 	if (this->_socket < 0)
@@ -57,7 +60,7 @@ Server::Server(int port, const std::string& password)
 
 	this->_clients.reserve(10);
 
-	std::cout << INFO << "Listening on port " << port << std::endl;
+	std::cout << PRINT_INFO << "Listening on port " << port << std::endl;
 
 	this->setup_commands();
 }
@@ -74,6 +77,13 @@ Server::~Server()
 			++it	)
 	{
 		delete *it;
+	}
+
+	for (	std::map<std::string, Channel *>::const_iterator it = this->_channels.begin();
+			it != this->_channels.end();
+			++it	)
+	{
+		delete it->second;
 	}
 
 	for (	std::map<std::string, Command *>::const_iterator it = this->_commands.begin();
@@ -169,9 +179,14 @@ void Server::request_disconnect(Client *client)
 
 void Server::disconnect(Client *client)
 {
-	// TODO: remove from all channels
+	std::vector<Channel *> channels = this->get_channels_with_client(client);
+
+	for (size_t i = 0; i < channels.size(); ++i) {
+		channels[i]->remove_client(client, "Disconnected");
+	}
+
 	client->disconnect();
-	std::cout << INFO << client->address() << ":" << client->port() << " has disconnected" << std::endl;
+	std::cout << PRINT_INFO << client->address() << ":" << client->port() << " has disconnected" << std::endl;
 
 	std::vector<Client *>& disc = this->_to_disconnect;
 	std::vector<Client *>& clients = this->_clients;
@@ -209,7 +224,7 @@ void Server::handle_data_from_client(Client *client)
 		}
 		else
 		{
-			std::cout << INFO << "Received partial command from " << client->address() << ":" << client->port() << std::endl;
+			std::cout << PRINT_INFO << "Received partial command from " << client->address() << ":" << client->port() << std::endl;
 			n = recv(client->socket(), buf, 1023, 0);
 			client->append_to_buffer(buf);
 		}
@@ -226,6 +241,15 @@ void Server::setup_commands()
 	this->_commands["PASS"] = new cmd::Pass(*this);
 	this->_commands["NICK"] = new cmd::Nick(*this);
 	this->_commands["USER"] = new cmd::User(*this);
+	this->_commands["PING"] = new cmd::Ping(*this);
+	this->_commands["JOIN"] = new cmd::Join(*this);
+	this->_commands["PRIVMSG"] = new cmd::Privmsg(*this);
+	this->_commands["HELP"] = new cmd::Help(*this);
+	this->_commands["LIST"] = new cmd::List(*this);
+	this->_commands["NOTICE"] = new cmd::Notice(*this);
+	this->_commands["TOPIC"] = new cmd::Topic(*this);
+	this->_commands["KICK"] = new cmd::Kick(*this);
+	this->_commands["PART"] = new cmd::Part(*this);
 }
 
 void Server::treat_command(Client *sender, const std::string& command)
@@ -239,12 +263,13 @@ void Server::treat_command(Client *sender, const std::string& command)
 		std::transform(command_name.begin(), command_name.end(), command_name.begin(), ::toupper);
 		cmd = this->_commands.at(command_name);
 	} catch (const std::string& err) {
-		std::cerr << ERROR << "Client::parse_command(): " << err << std::endl;
+		std::cerr << PRINT_ERROR << "Client::parse_command(): " << err << std::endl;
 	} catch (const std::exception& err) {
 		(void)err;
 		if (command_name != "CAP" && command_name != "WHO" && command_name != "USERHOST")
 		{
-			std::cerr << ERROR << "Client::treat_command(): No such command '" << command_name << "'" << std::endl;
+			sender->send(ERR_UNKNOWNCOMMAND(command_name));
+			std::cerr << PRINT_ERROR << "Client::treat_command(): No such command '" << command_name << "'" << std::endl;
 		}
 	}
 
@@ -253,9 +278,16 @@ void Server::treat_command(Client *sender, const std::string& command)
 		try {
 			cmd->execute(sender, args);
 		} catch (const std::string& err) {
-			std::cerr << ERROR << command_name << ": " << err << std::endl;
+			std::cerr << PRINT_ERROR << command_name << ": " << err << std::endl;
 			sender->send(err);
 		}
+	}
+}
+
+void Server::dispatch_message(const std::string& message) const
+{
+	for (std::vector<Client *>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
+		(*it)->send(message);
 	}
 }
 
@@ -292,6 +324,7 @@ void Server::ask_pollfd_update()
 void Server::handle_data_to_client(Client *client)
 {
 	std::string message = client->response_queue_pop();
+	std::cout << PRINT_SERVER << client->address() << ":" << client->port() << ": " << message << std::flush;
 	if (::send(client->socket(), &message[0], message.size(), 0) < 0)
 	{
 		this->request_disconnect(client);
@@ -314,17 +347,94 @@ Client *Server::get_from_nick(const std::string& nick)
 
 void	Server::successfully_registered(const std::string& nick, Client *user)
 {
-	std::stringstream client_count;
-	client_count << this->_clients.size();
-
-	std::stringstream channel_count;
-	channel_count << 0; // TODO: channel count
-
 	user->send(RPL_WELCOME(nick, user->username()));
 	user->send(RPL_YOURHOST(nick));
 	user->send(RPL_BOUNCE(nick));
-	user->send(RPL_LUSERCLIENT(nick, client_count.str()));
-	user->send(RPL_LUSERCHANNELS(nick, channel_count.str()));
+	user->send(RPL_LUSERCLIENT(nick, convert_string(this->_clients.size())));
+	user->send(RPL_LUSERCHANNELS(nick, convert_string(this->_channels.size())));
+}
+
+void Server::create_channel(Client *creator, const std::string& name, const std::string& key)
+{
+	if (key.empty()) {
+		std::cout << PRINT_INFO << YEL << "Creating channel '" << COLOR_RESET << name << YEL << "'" << COLOR_RESET << std::endl;
+		this->_channels[name] = new Channel(creator, name, *this);
+	} else {
+		std::cout << PRINT_INFO << YEL << "Creating channel '" << COLOR_RESET << name << YEL << "' with key " << CYN << key << COLOR_RESET << std::endl;
+		this->_channels[name] = new Channel(creator, name, key, *this);
+	}
+}
+
+void Server::remove_channel(const std::string& name)
+{
+	try {
+		std::map<std::string, Channel *>::iterator channel = this->_channels.find(name);
+		delete channel->second;
+		channel->second = NULL;
+		this->_channels.erase(channel);
+	}
+	catch (const std::exception&)
+	{	}
+}
+
+void Server::join_channel(Client *client, const std::string& name, const std::string& key)
+{
+	try {
+		Channel *channel = this->_channels.at(name);
+
+		if (channel->mode() & MODE_K) {
+			if (!key.empty() && channel->is_right_key(key)) {
+				channel->add_client(client);
+			} else {
+				throw ERR_BADCHANNELKEY(name);
+			}
+		} else {
+			channel->add_client(client);
+		}
+	} catch (const std::exception&) {
+		this->create_channel(client, name, key);
+	}
+}
+
+size_t Server::channel_count() const
+{
+	return this->_channels.size();
+}
+
+Channel *Server::get_channel_with_name(const std::string& name)
+{
+	try {
+		return this->_channels.at(name);
+	} catch (const std::exception&) {
+		throw ERR_NOSUCHCHANNEL(name);
+	}
+}
+
+std::vector<Channel *>	Server::get_channels() const
+{
+	std::vector<Channel *> ret;
+
+	for (std::map<std::string, Channel *>::const_iterator it = this->_channels.begin(); it != this->_channels.end(); ++it) {
+		ret.push_back(it->second);
+	}
+	return ret;
+}
+
+std::vector<Channel *>	Server::get_channels_with_client(Client *client) const
+{
+	std::vector<Channel *> ret;
+
+	for (std::map<std::string, Channel *>::const_iterator it = this->_channels.begin(); it != this->_channels.end(); ++it) {
+		if (it->second->client_exists(client)) {
+			ret.push_back(it->second);
+		}
+	}
+	return ret;
+}
+
+const std::map<std::string, Command *>& Server::get_commands() const
+{
+	return this->_commands;
 }
 
 }

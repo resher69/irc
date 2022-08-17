@@ -8,7 +8,7 @@ namespace cmd
 {
 
 Quit::Quit(Server& server)
-	: Command(server, "QUIT", "QUIT <reason>: Leaves the server with a message")
+	: Command(server, "QUIT", "<reason>: Leaves the server with a message")
 {	}
 
 void Quit::execute(Client *sender, const std::string& args)

@@ -8,7 +8,7 @@ namespace cmd
 {
 
 Nick::Nick(Server& server)
-	: Command(server, "NICK", "NICK <nickname>: Sets nickname")
+	: Command(server, "NICK", "<nickname>: Sets nickname")
 {	}
 
 void Nick::execute(Client *sender, const std::string& args)
@@ -46,7 +46,9 @@ void Nick::execute(Client *sender, const std::string& args)
 		throw ERR_NICKNAMEINUSE(nickname);
 	}
 
-	// TODO: successfully_registered()
+	if (sender->nickname().empty() && !sender->username().empty()) {
+		this->_server.successfully_registered(nickname, sender);
+	}
 
 	sender->set_nickname(nickname);
 }

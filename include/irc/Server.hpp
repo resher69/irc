@@ -11,6 +11,7 @@ namespace ft
 /* Classe incomplete */
 class Client;
 class Command;
+class Channel;
 
 class Server
 {
@@ -21,6 +22,7 @@ private:
 	std::vector<Client *> _clients;
 	std::vector<Client *> _to_disconnect;
 	std::vector<pollfd>	 _pollfds;
+	std::map<std::string, Channel *> _channels;
 	std::map<std::string, Command *> _commands;
 
 	bool _should_update_pollfds;
@@ -41,6 +43,19 @@ public:
 
 	Client *get_from_nick(const std::string& nick);
 	void	successfully_registered(const std::string& nick, Client *user);
+
+	void dispatch_message(const std::string& message) const;
+
+	void create_channel(Client *creator, const std::string& name, const std::string& key = "");
+	void remove_channel(const std::string& name);
+	void join_channel(Client *client, const std::string& name, const std::string& key = "");
+	size_t channel_count() const;
+
+	Channel *get_channel_with_name(const std::string& name);
+	std::vector<Channel *>	get_channels() const;
+	std::vector<Channel *>	get_channels_with_client(Client *client) const;
+
+	const std::map<std::string, Command *>& get_commands() const;
 
 private:
 	void setup_commands();

@@ -27,7 +27,7 @@
 // #define RPL_HCONNECTIONCOUNT(nick, )	    					std::string(":") + SERVER_NAME + " 250 " + nick + " :Highest connection count: 1 (2 connections received)"
 #define RPL_LISTSTART(nick)										std::string(":") + SERVER_NAME + " 321 " + nick + " Channel :Users Name"
 #define RPL_LIST(nick, channel_name, users_count, topic)		std::string(":") + SERVER_NAME + " 322 " + nick + " " + channel_name + " " + convert_string(users_count) + " :" + topic
-#define RPL_LISTEND												std::string(":") + SERVER_NAME + " 323 " + ":End of LIST"
+#define RPL_LISTEND												std::string(":") + SERVER_NAME + " 323 " + ":End of /LIST"
 // #define RPL_MOTDSTART(nick, )								std::string(":") + SERVER_NAME + " 375 " + nick + " :- " + SERVER_NAME + " message of the day"
 // #define RPL_MOTD(nick, modt)									std::string(":") + SERVER_NAME + " 372 " + nick + " :- "+ modt
 // #define RPL_ENDOFMOTD(nick, )								std::string(":") + SERVER_NAME + " 376 " + nick + " :End of MOTD command"

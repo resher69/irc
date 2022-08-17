@@ -14,7 +14,7 @@ Client::Client(Server& server, int socket, const std::string& address, unsigned 
 		_has_logged = true;
 	}
 
-	std::cout << INFO << "New connection from " << this->_address << ":" << this->_port << std::endl;
+	std::cout << PRINT_INFO << "New connection from " << this->_address << ":" << this->_port << std::endl;
 }
 
 int	Client::socket() const
@@ -60,7 +60,7 @@ void Client::treat_command()
 		return ;
 	}
 
-	std::cout << CLIENT << this->address() << ":" << this->port() << ": '" << this->_message_buffer << "'" << std::endl;
+	std::cout << PRINT_CLIENT << this->address() << ":" << this->port() << ": '" << this->_message_buffer << "'" << std::endl;
 
 	this->_server.treat_command(this, this->_message_buffer);
 
@@ -99,11 +99,11 @@ void Client::set_nickname(const std::string& nick)
 {
 	if (this->_nickname.empty())
 	{
-		std::cout << INFO << this->_address << ":" << this->_port << " changed their nickname to '" << nick << "'" << std::endl;
+		std::cout << PRINT_INFO << this->_address << ":" << this->_port << " changed their nickname to '" << nick << "'" << std::endl;
 	}
 	else
 	{
-		std::cout << INFO << this->_nickname << " changed their nickname to '" << nick << "'" << std::endl;
+		std::cout << PRINT_INFO << this->_nickname << " changed their nickname to '" << nick << "'" << std::endl;
 	}
 	this->_nickname = nick;
 }

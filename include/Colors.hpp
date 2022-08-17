@@ -74,9 +74,9 @@
 #define COLOR_RESET "\e[0m"
 
 // Utilities
-#define FATAL "[" REDHB "FATAL" COLOR_RESET "] "
-#define ERROR "[" RED "ERROR" COLOR_RESET "] "
-#define WARN "[" YEL "WARN" COLOR_RESET "] "
-#define INFO "[" MAG "INFO" COLOR_RESET "] "
-#define CLIENT "[" GRN "CLIENT" COLOR_RESET "] "
-#define SERVER "[" CYN "SERVER" COLOR_RESET "] "
+#define PRINT_FATAL "[" REDHB "FATAL" COLOR_RESET "] "
+#define PRINT_ERROR "[" RED "ERROR" COLOR_RESET "] "
+#define PRINT_WARN "[" YEL "WARN" COLOR_RESET "] "
+#define PRINT_INFO "[" MAG "INFO" COLOR_RESET "] "
+#define PRINT_CLIENT "[" GRN "CLIENT" COLOR_RESET "] "
+#define PRINT_SERVER "[" CYN "SERVER" COLOR_RESET "] "

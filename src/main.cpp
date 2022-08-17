@@ -9,7 +9,7 @@ int main()
 	try {
 		server = new ft::Server(6667, "abc");
 	} catch (const std::exception& e) {
-		std::cerr << FATAL << e.what() << std::endl;
+		std::cerr << PRINT_FATAL << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -18,7 +18,7 @@ int main()
 		try {
 			server->update();
 		} catch (const std::exception &e) {
-			std::cerr << FATAL << e.what() << std::endl;
+			std::cerr << PRINT_FATAL << e.what() << std::endl;
 			return EXIT_FAILURE;
 		}
 	}

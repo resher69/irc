@@ -1,6 +1,7 @@
 #include "irc/Command.hpp"
 #include "irc/Client.hpp"
 #include "irc/Errors.hpp"
+#include "irc/Irc.hpp"
 
 #include <iostream>
 
@@ -10,7 +11,7 @@ namespace cmd
 {
 
 User::User(Server& server)
-	: Command(server, "USER", "USER <username> 0 <unused> <realname>: Sets username")
+	: Command(server, "USER", "<username> 0 * <realname>: Sets username")
 {	}
 
 void User::execute(Client *sender, const std::string& args)
@@ -32,9 +33,20 @@ void User::execute(Client *sender, const std::string& args)
 		throw ERR_NEEDMOREPARAMS(this->_name);
 	}
 
-	sender->set_username(arguments[0]);
+	if (arguments[0].empty())
+	{
+		throw ERR_NEEDMOREPARAMS(this->_name);
+	}
 
-	// TODO: successfully_registered
+	if (arguments[0].size() > SERVER_USERLEN)
+	{
+		arguments[0] = arguments[0].substr(0, SERVER_USERLEN);
+	}
+
+	sender->set_username(arguments[0]);
+	if (!sender->nickname().empty()) {
+		this->_server.successfully_registered(sender->nickname(), sender);
+	}
 }
 
 }

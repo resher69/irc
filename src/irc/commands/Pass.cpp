@@ -10,7 +10,7 @@ namespace cmd
 {
 
 Pass::Pass(Server& server)
-	: Command(server, "PASS", "PASS <password>: Log in to the server")
+	: Command(server, "PASS", "<password>: Log in to the server")
 {	}
 
 void Pass::execute(Client *sender, const std::string& args)

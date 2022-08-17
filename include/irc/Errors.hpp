@@ -5,7 +5,7 @@
 #define ERR_NOSUCHNICK(nick, to)							std::string(":") + SERVER_NAME + " 401 " + nick + " " + to + " :No such nick or channel name"
 #define ERR_NOSUCHCHANNEL(channel_name)						std::string(":") + SERVER_NAME + " 403 " + channel_name + " :No such channel"
 #define ERR_NOTEXTTOSEND(nick)								std::string(":") + SERVER_NAME + " 412 " + nick + " :No text to send"
-#define ERR_UNKNOWNCOMMAND(cmd)								std::string(":") + SERVER_NAME + " 421 " + cmd + " :Unknown command"
+#define ERR_UNKNOWNCOMMAND(cmd)								std::string(":") + SERVER_NAME + " 421 " + cmd + " :" + cmd
 #define ERR_NONICKNAMEGIVEN									std::string(":") + SERVER_NAME + " 431 :No nickname given"
 #define ERR_ERRONEUSNICKNAME(nick)							std::string(":") + SERVER_NAME + " 432 " + nick + " :Erroneous nickname"
 #define ERR_NICKNAMEINUSE(nick)								std::string(":") + SERVER_NAME + " 433 " + nick + " :Nickname is already in use"

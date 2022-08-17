@@ -13,7 +13,9 @@ Command::~Command()
 
 const char *Command::parse_arguments(const char *cmd, std::vector<std::string>& args)
 {
-	cmd = this->parse_arguments_space(cmd, args);
+	if (*cmd != ':') {
+		cmd = this->parse_arguments_space(cmd, args);
+	}
 	if (!*cmd) {
 		return cmd;
 	}
@@ -73,5 +75,16 @@ const char *Command::parse_arguments_colon(const char *cmd, std::vector<std::str
 	}
 	return cmd;
 }
+
+const std::string& Command::name() const
+{
+	return this->_name;
+}
+
+const std::string& Command::description() const
+{
+	return this->_description;
+}
+
 
 }
