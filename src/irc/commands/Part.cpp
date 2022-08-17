@@ -46,7 +46,7 @@ void Part::execute(Client *sender, const std::string& args)
 		try {
 			Channel *channel = this->_server.get_channel_with_name(parsed);
 			if (!channel->client_exists(sender)) {
-				sender->send(ERR_NOTONCHANNEL(channel->name()));
+				sender->send(ERR_NOTONCHANNEL(sender->nickname(), channel->name()));
 				continue ;
 			} else {
 				channel->remove_client(sender, comment);

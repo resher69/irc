@@ -61,6 +61,9 @@ Server::Server(int port, const std::string& password)
 	this->_clients.reserve(10);
 
 	std::cout << PRINT_INFO << "Listening on port " << port << std::endl;
+	if (this->has_password()) {
+		std::cout << PRINT_INFO << "Password: '" << password << "'" << std::endl;
+	}
 
 	this->setup_commands();
 }
@@ -250,6 +253,7 @@ void Server::setup_commands()
 	this->_commands["TOPIC"] = new cmd::Topic(*this);
 	this->_commands["KICK"] = new cmd::Kick(*this);
 	this->_commands["PART"] = new cmd::Part(*this);
+	this->_commands["MODE"] = new cmd::Mode(*this);
 }
 
 void Server::treat_command(Client *sender, const std::string& command)

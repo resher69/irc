@@ -1,6 +1,7 @@
 #include "irc/Command.hpp"
 #include "irc/Client.hpp"
 #include "irc/Errors.hpp"
+#include "irc/Channel.hpp"
 #include "irc/Irc.hpp"
 
 #include <iostream>
@@ -34,10 +35,6 @@ void Join::execute(Client *sender, const std::string& args)
 		throw ERR_NEEDMOREPARAMS(this->_name);
 	}
 
-	if (arguments.size() == 1 && arguments[0] == "0") {
-		// TODO: Leave every channel
-	}
-
 	if (arguments[0].empty())
 	{
 		throw ERR_NEEDMOREPARAMS(this->_name);
@@ -50,6 +47,12 @@ void Join::execute(Client *sender, const std::string& args)
 		if (channels[i].name[0] != '#' || channels[i].name.size() > SERVER_CHANNELLEN) {
 			sender->send(ERR_NOSUCHCHANNEL(channels[i].name));
 		} else {
+			try {
+				Channel *channel = this->_server.get_channel_with_name(channels[i].name);
+				if (channel->client_exists(sender)) {
+					sender->send(ERR_USERONCHANNEL(sender->nickname(), channels[0].name));
+				}
+			} catch (const std::string&) {	}
 			try {
 				this->_server.join_channel(sender, channels[i].name, channels[i].key);
 			} catch (const std::string& e) {

@@ -39,6 +39,7 @@ class Channel
 		void unset_mode(short mode);
 
 		const std::string& key() const;
+		void set_key(const std::string& key);
 		bool is_right_key(const std::string& key) const;
 
 		const std::string& topic() const;

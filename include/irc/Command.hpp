@@ -138,6 +138,13 @@ class Part : public Command
 		void execute(Client *sender, const std::string& args);
 };
 
+class Mode : public Command
+{
+	public:
+		Mode(Server& server);
+		void execute(Client *sender, const std::string& args);
+};
+
 }
 
 }

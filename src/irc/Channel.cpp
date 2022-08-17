@@ -43,6 +43,11 @@ void Channel::add_client(Client *client)
 	if (this->client_exists(client)) {
 		return ;
 	}
+
+	if (this->is_banned(client)) {
+		throw ERR_BANNEDFROMCHAN(this->_name);
+	}
+
 	this->_clients.push_back((ClientInfo) { .client = client, .is_operator = false });
 
 	std::string nick = client->nickname();
@@ -191,6 +196,9 @@ bool Channel::is_operator(Client *client) const
 
 void Channel::dispatch_message(Client *client, const std::string& message) const
 {
+	if (client && !this->client_exists(client)) {
+		throw std::string(ERR_NOTONCHANNEL(client->nickname(), this->_name));
+	}
 	for (std::vector<ClientInfo>::const_iterator it = this->_clients.begin(); it != this->_clients.end(); ++it) {
 		// Do not send the message to the sender
 		if (client && it->client->socket() == client->socket()) {
@@ -240,6 +248,11 @@ Client *Channel::get_from_nick(const std::string& nick)
 			return this->_clients[i].client;
 	}
 	return NULL;
+}
+
+void Channel::set_key(const std::string& key)
+{
+	this->_key = key;
 }
 
 }
