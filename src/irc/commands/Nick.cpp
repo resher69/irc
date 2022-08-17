@@ -1,6 +1,7 @@
 #include "irc/Command.hpp"
 #include "irc/Client.hpp"
 #include "irc/Errors.hpp"
+#include "irc/Replies.hpp"
 
 namespace ft
 {
@@ -50,6 +51,7 @@ void Nick::execute(Client *sender, const std::string& args)
 		this->_server.successfully_registered(nickname, sender);
 	}
 
+	this->_server.dispatch_message(NICK(sender->username(), sender->nickname(), nickname));
 	sender->set_nickname(nickname);
 }
 

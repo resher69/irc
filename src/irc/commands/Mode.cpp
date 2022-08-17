@@ -116,7 +116,7 @@ void Mode::execute(Client *sender, const std::string& args)
 					}
 					client = channel->get_from_nick(arguments[2]);
 					if (client == NULL) {
-						sender->send(ERR_NOSUCHNICK(sender->nickname(), arguments[2]));
+						throw ERR_NOSUCHNICK(sender->nickname(), arguments[2]);
 					}
 					channel->ban(client);
 					channel->dispatch_message(NULL, MODE_BAN(sender->nickname(), channel->name(), arguments[2]));
@@ -130,7 +130,7 @@ void Mode::execute(Client *sender, const std::string& args)
 					}
 					client = channel->get_from_nick(arguments[2]);
 					if (client == NULL) {
-						sender->send(ERR_NOSUCHNICK(sender->nickname(), arguments[2]));
+						throw ERR_NOSUCHNICK(sender->nickname(), arguments[2]);
 					}
 					channel->set_operator(client);
 					channel->dispatch_message(NULL, MODE_OP(sender->nickname(), channel->name(), arguments[2]));
@@ -152,9 +152,9 @@ void Mode::execute(Client *sender, const std::string& args)
 					}
 					client = channel->get_from_nick(arguments[2]);
 					if (client == NULL) {
-						sender->send(ERR_NOSUCHNICK(sender->nickname(), arguments[2]));
+						throw ERR_NOSUCHNICK(sender->nickname(), arguments[2]);
 					}
-					channel->dispatch_message(NULL, MODE_UNBAN(sender->nickname(), channel->name(), client->nickname()));
+					channel->dispatch_message(NULL, MODE_UNBAN(sender->nickname(), channel->name(), arguments[2]));
 					channel->unban(client);
 					break ;
 				case 't': // 'MODE <channel> -t <params>' -> invalid
@@ -166,7 +166,7 @@ void Mode::execute(Client *sender, const std::string& args)
 					}
 					client = channel->get_from_nick(arguments[2]);
 					if (client == NULL) {
-						sender->send(ERR_NOSUCHNICK(sender->nickname(), arguments[2]));
+						throw ERR_NOSUCHNICK(sender->nickname(), arguments[2]);
 					}
 					channel->unset_operator(client);
 					channel->dispatch_message(NULL, MODE_DEOP(sender->nickname(), channel->name(), arguments[2]));
